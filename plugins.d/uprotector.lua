@@ -2,6 +2,7 @@ if confighelp then
   return
 end
 
+
 local N = "uprotector"
 local symbol_uprotector = "UPROTECTOR_CALLBACK"
 local opts = rspamd_config:get_all_opt(N)
@@ -10,7 +11,6 @@ local opts = rspamd_config:get_all_opt(N)
 local rspamd_http = require "rspamd_http"
 local rspamd_logger = require "rspamd_logger"
 local cjson = require('cjson')
--- local json = require('json')
 
 local function http_symbol(task)
 
@@ -18,9 +18,17 @@ local function http_symbol(task)
   local function request_done(err, code, body)
     if err then
       rspamd_logger.errx('http_callback error: ' .. err)
-      task:insert_result('HTTP_ERROR', 1.0, err)
     else
-      task:insert_result('HTTP_RESPONSE', 1.0, body)
+	  local table_body = cjson.decode(body)
+      rspamd_logger.infox('message-id: ' .. task:get_message_id())
+      rspamd_logger.infox('rspamd url_check response body: ' .. body)
+	  if table_body['malicious'] == false then
+        task:insert_result(opts.name, 0.0 , 'YES')
+	  else
+        task:insert_result(opts.name, 1.0, 'NO')
+		malicious_urls = cjson.encode(table_body['malicious_urls'])
+        task:insert_result('MALICIOUS_URLS', 0.0, malicious_urls)
+	  end
     end
   end
 
@@ -31,44 +39,28 @@ local function http_symbol(task)
     table.insert(urls, tostring(url))
   end
 
-
-  local test = {
-	  ["force_refresh"] = true,
-	  ["urls"] =  {
-		"https://www.linkedin.com/in/duy-nguyen-94510b108/"
-	  -- "https://google.com",
-	  -- "https://bizflycloud.vn",
-	  -- "https://abc.vn",
-	  -- "https://abc.xyz"
-		}
-	}
-
-  -- local _urls = cjson.decode(urls)
-  -- rspamd_logger.infox("_urls:", _urls)
   local raw_body = {
      ["force_refresh"] = true,
      ["urls"] =  urls
   }
-
-
-  local encode = cjson.encode(raw_body)
+  local encode_body = cjson.encode(raw_body)
 
   -- initiate the request
   rspamd_http.request({
-        url = 'http://10.5.69.66:30889/bulk-check',
-        -- url = 'http://123.30.234.141:8912/test',
-        body = encode,
+        url = opts.url,
+        body = encode_body,
         method='get',
         task = task,
         callback = request_done,
-        timeout = 30,
+        timeout = opts.timeout,
   })
 end
 
 if opts then
   rspamd_config:register_symbol({
-    name = 'URL_PROTECTOR',
+    name = opts.name,
     score = 1.0,
     callback = http_symbol,
+	priority = 15,
   })
 end
