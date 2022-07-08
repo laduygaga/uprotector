@@ -22,12 +22,12 @@ local function http_symbol(task)
 	  local table_body = cjson.decode(body)
       rspamd_logger.infox('message-id: ' .. task:get_message_id())
       rspamd_logger.infox('rspamd url_check response body: ' .. body)
-	  if table_body['malicious'] == false then
-        task:insert_result(opts.name, 0.0 , 'YES')
-	  else
+	  if table_body['malicious'] == true then
         task:insert_result(opts.name, 1.0, 'NO')
 		malicious_urls = cjson.encode(table_body['malicious_urls'])
         task:insert_result('MALICIOUS_URLS', 0.0, malicious_urls)
+	  else
+        task:insert_result(opts.name, 0.0 , 'YES')
 	  end
     end
   end

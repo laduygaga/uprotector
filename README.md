@@ -1,10 +1,19 @@
 # Installation
 
+## Required
+1. lua5.1
+2. cjson
+```
+apt install lua5.1
+apt install luarocks 
+luarocks  install lua-cjson
+> ok =  /usr/local/lib/lua/5.1/cjson.so is existing else not ok
+```
 ## Automatical
 ```
 git clone https://github.com/laduygaga/uprotector
 cd uprotector
-./plug_and_play
+./plug_and_play.sh
 ```
 
 ## Manual
