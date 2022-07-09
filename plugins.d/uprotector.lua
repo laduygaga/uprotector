@@ -24,8 +24,10 @@ local function http_symbol(task)
       rspamd_logger.infox('rspamd url_check response body: ' .. body)
 	  if table_body['malicious'] == true then
         task:insert_result(opts.name, 1.0, 'NO')
-		malicious_urls = cjson.encode(table_body['malicious_urls'])
-        task:insert_result('MALICIOUS_URLS', 0.0, malicious_urls)
+        if next(table_body['malicious_urls']) then
+		  local malicious_urls = cjson.encode(table_body['malicious_urls'])
+          task:insert_result('MALICIOUS_URLS', 0.0, malicious_urls)
+	    end
 	  else
         task:insert_result(opts.name, 0.0 , 'YES')
 	  end
@@ -35,25 +37,30 @@ local function http_symbol(task)
   -- handle request body
   local raw_urls = task:get_urls()
   local urls = {}
-  for _, url in ipairs(raw_urls) do
-    table.insert(urls, tostring(url))
+  if next(raw_urls) ~= nil then
+    for _, url in ipairs(raw_urls) do
+      table.insert(urls, tostring(url))
+    end
   end
 
-  local raw_body = {
-     ["force_refresh"] = true,
-     ["urls"] =  urls
-  }
-  local encode_body = cjson.encode(raw_body)
-
-  -- initiate the request
-  rspamd_http.request({
-        url = opts.url,
-        body = encode_body,
-        method='get',
-        task = task,
-        callback = request_done,
-        timeout = opts.timeout,
-  })
+  if next(urls) ~= nil then
+    local raw_body = {
+       ["force_refresh"] = true,
+       ["urls"] =  urls
+    }
+    local encode_body = cjson.encode(raw_body)
+    -- initiate the request
+    rspamd_http.request({
+          url = opts.url,
+          body = encode_body,
+          method='get',
+          task = task,
+          callback = request_done,
+          timeout = opts.timeout,
+    })
+  else
+    task:insert_result(opts.name, 0.0 , 'YES')
+  end
 end
 
 if opts then
