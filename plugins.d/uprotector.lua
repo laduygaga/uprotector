@@ -44,22 +44,8 @@ local function http_symbol(task)
   end
 
   if next(urls) ~= nil then
-    local raw_body = {
-       ["force_refresh"] = true,
-       ["urls"] =  urls
-    }
-    local encode_body = cjson.encode(raw_body)
-    -- initiate the request
-    rspamd_http.request({
-          url = opts.url,
-          body = encode_body,
-          method='get',
-          task = task,
-          callback = request_done,
-          timeout = opts.timeout,
-    })
-  else
-    task:insert_result(opts.name, 0.0 , 'YES')
+    local encode_url_list = cjson.encode(urls)
+	rspamd_logger.infox("list of urls: %s", encode_url_list)
   end
 end
 
