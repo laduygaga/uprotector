@@ -1,10 +1,36 @@
 # Installation
 
 ## Required
+### apt
+1. libssl-dev
+### luarocks
 1. lua5.1
 2. cjson
 3. luasec
 4. lua-socket
+### 
+```
+mkdir /tmp/rspamd
+chown -hR _rspamd:_rspamd /tmp/rspamd
+```
+### GET token and cookie cho vào atchprotector.conf , có thể chạy cronjob	
+```
+cat >>/etc/hosts<<EOF
+10.5.68.42 mysaferwall.com api.mysaferwall.com about.mysaferwall.com
+EOF
+
+get_token() {
+	curl -kiX POST \
+		'https://api.mysaferwall.com/v1/auth/login/' \
+  		-H 'accept: application/json' \
+  		-H 'Content-Type: application/json' \
+  		-d '{
+			"password": "namdz12345678",
+			"username": "namdz"
+		}'
+}
+```
+
 ```
 apt install lua5.1
 apt install luarocks 
