@@ -197,7 +197,7 @@ local function http_symbol(task)
 	       ['Cookie'] = Cookie
 	}
     return rspamd_http.request({
-    	  url = string.format("https://api.mysaferwall.com/v1/files/%s", sha256),
+    	  url = string.format(opts.url .. sha256),
           headers=headers,
     	  method='get',
     	  task = task,
@@ -219,7 +219,7 @@ local function http_symbol(task)
   	  rspamd_logger.infox("writing content to file...")
   	  write_content(p)
   	  rspamd_logger.infox("uploading file...")
-  	  local rc,content = upload_file('https://api.mysaferwall.com/v1/files/', string.format('/tmp/rspamd/%s',get_name(p)))
+  	  local rc,content = upload_file(opts.url, string.format('/tmp/rspamd/%s',get_name(p)))
 	  if rc == 201 then
   	    if cjson.decode(content)['sha1'] and  cjson.decode(content)['sha256']then
 	      if infected_check(cjson.decode(content)) then
@@ -239,7 +239,7 @@ local function http_symbol(task)
   	      rspamd_logger.infox("sleeping...")
 	      sleep(2)
 	      -- get_file_report(sha256)
-	      local _rc,_content = upload_file('https://api.mysaferwall.com/v1/files/', string.format('/tmp/rspamd/%s',get_name(p)))
+	      local _rc,_content = upload_file(opts.url, string.format('/tmp/rspamd/%s',get_name(p)))
 		  if _rc == 201 then
   	        rspamd_logger.infox("_content is: %s", _content)
 	        if infected_check(cjson.decode(_content)) then
