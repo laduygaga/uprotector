@@ -79,29 +79,53 @@ local function http_symbol(task)
     decode_base64(tostring(part:get_raw_content()), name_of_part)
   end
 
+  function table.has_key(t, key)
+  	for k, _ in pairs(t) do
+  		if k == key then
+  			return true
+  		end
+  	end
+  	return false
+  end
 
   -- infected check
   local function infected_check(table_body)
-	if table_body['multiav']['last_scan']['avira'] ~= nil then
-	  if table_body['multiav']['last_scan']['avira']['infected'] then
-	  	return true
+    if table.has_key(table_body, "multiav") then
+      if table.has_key(table_body['multiav'], "last_scan") then
+
+  	    if table.has_key(table_body['multiav']['last_scan'], "avira") then
+  	      if table_body['multiav']['last_scan']['avira'] ~= nil then
+  	        if table_body['multiav']['last_scan']['avira']['infected'] then
+  	        	return true
+  	        end
+  	      end
+
+  	    elseif table.has_key(table_body['multiav']['last_scan'], "clamav") then
+  	      if table_body['multiav']['last_scan']['clamav'] ~= nil then
+  	        if table_body['multiav']['last_scan']['clamav']['infected']  then
+  	          return true
+  	        end
+  	      end
+
+  	    elseif table.has_key(table_body['multiav']['last_scan'], "comodo") then
+  	      if table_body['multiav']['last_scan']['comodo'] ~= nil then
+  	        if table_body['multiav']['last_scan']['comodo']['infected'] then
+  	          return true
+  	        end
+  	      end
+
+  	    elseif table.has_key(table_body['multiav']['last_scan'], "windefender") then
+  	      if table_body['multiav']['last_scan']['windefender'] ~= nil then
+  	        if table_body['multiav']['last_scan']['windefender']['infected'] then
+  	          return true
+  	        end
+  	      else
+  	        return false
+  	      end
+  	    end
 	  end
-	elseif table_body['multiav']['last_scan']['clamav'] ~= nil then
-	  if table_body['multiav']['last_scan']['clamav']['infected']  then
-	    return true
-	  end
-	elseif table_body['multiav']['last_scan']['comodo'] ~= nil then
-	  if table_body['multiav']['last_scan']['comodo']['infected'] then
-	    return true
-	  end
-	elseif table_body['multiav']['last_scan']['windefender'] ~= nil then
-	  if table_body['multiav']['last_scan']['windefender']['infected'] then
-	    return true
-	  end
-	else
-	  return false
-	end
-end
+    end
+  end
 
 
   -- upload file
