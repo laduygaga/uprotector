@@ -119,11 +119,15 @@ local function http_symbol(task)
   	        if table_body['multiav']['last_scan']['windefender']['infected'] then
   	          return true
   	        end
-  	      else
-  	        return false
   	      end
+	    else
+	      return false
   	    end
+	  else
+	    return false
 	  end
+    else
+      return false
     end
   end
 
