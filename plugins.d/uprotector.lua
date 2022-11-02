@@ -45,7 +45,7 @@ local function http_symbol(task)
 
   if next(urls) ~= nil then
     local raw_body = {
-       ["force_refresh"] = true,
+       ["force_refresh"] = false,
        ["urls"] =  urls
     }
     local encode_body = cjson.encode(raw_body)
