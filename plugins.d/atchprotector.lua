@@ -40,7 +40,6 @@ local function http_symbol(task)
   -- get name of part
   local function get_name(part)
         local name_of_part = mysplit(part:get_header('content-type'), '"')
-		-- rspamd_logger.infox(name_of_part[#name_of_part])
 		return name_of_part[#name_of_part]
   end
 
@@ -74,7 +73,6 @@ local function http_symbol(task)
 
   -- get raw content of part
   local function write_content(part)
-    -- rspamd_logger.infox("%s", part:get_type())
 	local name_of_part = get_name(part)
     decode_base64(tostring(part:get_raw_content()), name_of_part)
   end
@@ -220,34 +218,29 @@ local function http_symbol(task)
   local infected = false
   for _, p in ipairs(task:get_parts()) do
     if get_mimetype(p) ~= 'multipart/mixed' and get_mimetype(p) ~= 'text/plain' then
-  	  rspamd_logger.infox("writing content to file...")
+  	  rspamd_logger.infox("writing content of file %s to file...", get_name(p))
   	  write_content(p)
-  	  rspamd_logger.infox("uploading file...")
+  	  rspamd_logger.infox("uploading file %s...", get_name(p))
   	  local rc,content = upload_file(opts.url, string.format('/tmp/rspamd/%s',get_name(p)))
 	  if rc == 201 then
-  	    if cjson.decode(content)['sha1'] and  cjson.decode(content)['sha256']then
+  	    if cjson.decode(content)['sha1'] and  cjson.decode(content)['sha256'] then
 	      if infected_check(cjson.decode(content)) then
-	        rspamd_logger.infox('INFECTED')
+		    rspamd_logger.infox('INFECTED')
+		    rspamd_logger.infox('file %s is not safe', cjson.decode(content)['sha256'])
 	        infected = true
 	        break
-	        -- task:insert_result(opts.name, 1.0, 'YES')
 	      else
 	        rspamd_logger.infox('NOT INFECTED')
-	        -- task:insert_result(opts.name, 0.0, 'NO')
 	      end
-  	      rspamd_logger.infox("content1 is: %s", content)
   	    else
 	      local sha256 = cjson.decode(content)['sha256']
-  	      rspamd_logger.infox("rc upload is: %s", tostring(rc))
-  	      rspamd_logger.infox("upload content is: %s",content)
-  	      rspamd_logger.infox("sleeping...")
+  	      rspamd_logger.infox("checking file: %s have sha256: %s", get_name(p), sha256)
 	      sleep(2)
-	      -- get_file_report(sha256)
 	      local _rc,_content = upload_file(opts.url, string.format('/tmp/rspamd/%s',get_name(p)))
 		  if _rc == 201 then
-  	        rspamd_logger.infox("_content is: %s", _content)
 	        if infected_check(cjson.decode(_content)) then
 	          rspamd_logger.infox('INFECTED')
+	          rspamd_logger.infox('file %s is not safe', sha256)
 	          infected = true
 	        else
 	          rspamd_logger.infox('NOT INFECTED')
